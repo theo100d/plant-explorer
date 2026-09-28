@@ -1,0 +1,61 @@
+<%- include("partials/header.ejs") %>
+
+<!-- Search bar component -->
+<section class="search-section">
+    <form action="/search" method="POST" class="search-form">
+        <input 
+            type="text" 
+            name="plantName" 
+            placeholder="Search plant name (e.g., Oak, Rose, Sunflower)..." 
+            value="<%= locals.searchQuery ? searchQuery : '' %>"
+            required
+        >
+        <button type="submit">Search</button>
+    </form>
+</section>
+
+<!-- Error message banner if an issue occurs -->
+<% if (locals.error) { %>
+    <div class="error-banner">
+        <p>⚠️ <%= error %></p>
+    </div>
+<% } %>
+
+<!-- Plant Grid -->
+<section class="plant-grid">
+    <% if (locals.plants && plants.length > 0) { %>
+        <!-- Loop over plants array from Trefle -->
+        <% plants.forEach(plant => { %>
+            <div class="plant-card">
+                <!-- Check if plant has an image URL, otherwise show placeholder -->
+                <% if (plant.image_url) { %>
+                    <img src="<%= plant.image_url %>" alt="<%= plant.common_name || plant.scientific_name %>">
+                <% } else { %>
+                    <div class="placeholder-img">No Image Available</div>
+                <% } %>
+
+                <div class="card-content">
+                    <!-- Display common name if available, fallback to scientific name -->
+                    <h2><%= plant.common_name ? plant.common_name : plant.scientific_name %></h2>
+                    
+                    <p class="scientific-name">
+                        <i><%= plant.scientific_name %></i>
+                    </p>
+
+                    <div class="details">
+                        <% if (plant.family_common_name || plant.family) { %>
+                            <p><strong>Family:</strong> <%= plant.family_common_name || plant.family %></p>
+                        <% } %>
+                        <% if (plant.genus) { %>
+                            <p><strong>Genus:</strong> <%= plant.genus %></p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    <% } else if (!locals.error) { %>
+        <p class="no-results">No plants found. Try another search term!</p>
+    <% } %>
+</section>
+
+<%- include("partials/footer.ejs") %>
