@@ -1,8 +1,8 @@
 <%- include("partials/header.ejs") %>
 
-<!-- Search bar component -->
+<!-- Search bar component (Using GET method for query parameter persistence) -->
 <section class="search-section">
-    <form action="/search" method="POST" class="search-form">
+    <form action="/search" method="GET" class="search-form">
         <input 
             type="text" 
             name="plantName" 
@@ -14,7 +14,6 @@
     </form>
 </section>
 
-<!-- Error message banner if an issue occurs -->
 <% if (locals.error) { %>
     <div class="error-banner">
         <p>⚠️ <%= error %></p>
@@ -24,10 +23,8 @@
 <!-- Plant Grid -->
 <section class="plant-grid">
     <% if (locals.plants && plants.length > 0) { %>
-        <!-- Loop over plants array from Trefle -->
         <% plants.forEach(plant => { %>
             <div class="plant-card">
-                <!-- Check if plant has an image URL, otherwise show placeholder -->
                 <% if (plant.image_url) { %>
                     <img src="<%= plant.image_url %>" alt="<%= plant.common_name || plant.scientific_name %>">
                 <% } else { %>
@@ -35,21 +32,17 @@
                 <% } %>
 
                 <div class="card-content">
-                    <!-- Display common name if available, fallback to scientific name -->
                     <h2><%= plant.common_name ? plant.common_name : plant.scientific_name %></h2>
-                    
-                    <p class="scientific-name">
-                        <i><%= plant.scientific_name %></i>
-                    </p>
+                    <p class="scientific-name"><i><%= plant.scientific_name %></i></p>
 
                     <div class="details">
                         <% if (plant.family_common_name || plant.family) { %>
                             <p><strong>Family:</strong> <%= plant.family_common_name || plant.family %></p>
                         <% } %>
-                        <% if (plant.genus) { %>
-                            <p><strong>Genus:</strong> <%= plant.genus %></p>
-                        <% } %>
                     </div>
+
+                    <!-- Link to individual plant detail page -->
+                    <a href="/plant/<%= plant.id %>" class="btn-detail">View Details →</a>
                 </div>
             </div>
         <% }) %>
@@ -57,5 +50,30 @@
         <p class="no-results">No plants found. Try another search term!</p>
     <% } %>
 </section>
+
+<!-- Pagination Controls -->
+<% if (locals.plants && plants.length > 0) { %>
+    <div class="pagination">
+        <!-- Previous Page Button -->
+        <% if (currentPage > 1) { %>
+            <a 
+                href="<%= searchQuery ? `/search?plantName=${searchQuery}&page=${currentPage - 1}` : `/?page=${currentPage - 1}` %>" 
+                class="page-btn"
+            >
+                ← Previous
+            </a>
+        <% } %>
+
+        <span class="page-num">Page <%= currentPage %></span>
+
+        <!-- Next Page Button -->
+        <a 
+            href="<%= searchQuery ? `/search?plantName=${searchQuery}&page=${currentPage + 1}` : `/?page=${currentPage + 1}` %>" 
+            class="page-btn"
+        >
+            Next →
+        </a>
+    </div>
+<% } %>
 
 <%- include("partials/footer.ejs") %>
