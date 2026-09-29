@@ -1,6 +1,6 @@
 <%- include("partials/header.ejs") %>
 
-<!-- Search bar component (Using GET method for query parameter persistence) -->
+<!-- Search Bar Form (GET request maintains search terms in URL during pagination) -->
 <section class="search-section">
     <form action="/search" method="GET" class="search-form">
         <input 
@@ -14,21 +14,24 @@
     </form>
 </section>
 
+<!-- Error Alert Banner -->
 <% if (locals.error) { %>
     <div class="error-banner">
         <p>⚠️ <%= error %></p>
     </div>
 <% } %>
 
-<!-- Plant Grid -->
+<!-- Plant Cards Display Grid -->
 <section class="plant-grid">
     <% if (locals.plants && plants.length > 0) { %>
+        <!-- Iterate through array of plant objects -->
         <% plants.forEach(plant => { %>
             <div class="plant-card">
+                <!-- Check if plant has an image; fallback to local PNG image if missing -->
                 <% if (plant.image_url) { %>
                     <img src="<%= plant.image_url %>" alt="<%= plant.common_name || plant.scientific_name %>">
                 <% } else { %>
-                    <div class="placeholder-img">No Image Available</div>
+                    <img src="/images/no-image.png" alt="No Image Available" class="placeholder-fallback">
                 <% } %>
 
                 <div class="card-content">
@@ -41,20 +44,20 @@
                         <% } %>
                     </div>
 
-                    <!-- Link to individual plant detail page -->
+                    <!-- Button routing to individual plant details page -->
                     <a href="/plant/<%= plant.id %>" class="btn-detail">View Details →</a>
                 </div>
             </div>
         <% }) %>
     <% } else if (!locals.error) { %>
-        <p class="no-results">No plants found. Try another search term!</p>
+        <p class="no-results">No plants found matching your search. Try another query!</p>
     <% } %>
 </section>
 
 <!-- Pagination Controls -->
 <% if (locals.plants && plants.length > 0) { %>
     <div class="pagination">
-        <!-- Previous Page Button -->
+        <!-- Previous Button: Shows only if current page is greater than 1 -->
         <% if (currentPage > 1) { %>
             <a 
                 href="<%= searchQuery ? `/search?plantName=${searchQuery}&page=${currentPage - 1}` : `/?page=${currentPage - 1}` %>" 
@@ -64,15 +67,18 @@
             </a>
         <% } %>
 
-        <span class="page-num">Page <%= currentPage %></span>
+        <!-- Displays current page and total available pages -->
+        <span class="page-num">Page <%= currentPage %> of <%= totalPages %></span>
 
-        <!-- Next Page Button -->
-        <a 
-            href="<%= searchQuery ? `/search?plantName=${searchQuery}&page=${currentPage + 1}` : `/?page=${currentPage + 1}` %>" 
-            class="page-btn"
-        >
-            Next →
-        </a>
+        <!-- Next Button: Shows only if current page is less than total pages -->
+        <% if (currentPage < totalPages) { %>
+            <a 
+                href="<%= searchQuery ? `/search?plantName=${searchQuery}&page=${currentPage + 1}` : `/?page=${currentPage + 1}` %>" 
+                class="page-btn"
+            >
+                Next →
+            </a>
+        <% } %>
     </div>
 <% } %>
 

@@ -1,6 +1,7 @@
 <%- include("partials/header.ejs") %>
 
 <div class="detail-container">
+    <!-- Back button returns user to their search state -->
     <a href="javascript:history.back()" class="back-link">← Back to Results</a>
 
     <% if (locals.error) { %>
@@ -9,72 +10,95 @@
         </div>
     <% } else if (locals.plant) { %>
         <div class="detail-card">
+            
+            <!-- Header section with Image and primary plant identity -->
             <div class="detail-header">
                 <% if (plant.image_url) { %>
                     <img src="<%= plant.image_url %>" alt="<%= plant.common_name || plant.scientific_name %>" class="detail-img">
                 <% } else { %>
-                    <div class="placeholder-img detail-placeholder">No Image Available</div>
+                    <img src="/images/no-image.png" alt="No Image Available" class="detail-img placeholder-fallback">
                 <% } %>
 
                 <div class="detail-title-info">
                     <h1><%= plant.common_name || plant.scientific_name %></h1>
                     <p class="scientific-name"><i><%= plant.scientific_name %></i></p>
-                    
+
                     <div class="badge-group">
-                        <span class="badge <%= plant.vegetable ? 'badge-green' : 'badge-gray' %>">
-                            Vegetable: <%= plant.vegetable ? 'Yes' : 'No' %>
-                        </span>
-                        <span class="badge <%= plant.edible ? 'badge-green' : 'badge-gray' %>">
-                            Edible: <%= plant.edible ? 'Yes' : 'No' %>
-                        </span>
+                        <% if (plant.vegetable !== null) { %>
+                            <span class="badge <%= plant.vegetable ? 'badge-green' : 'badge-gray' %>">
+                                Vegetable: <%= plant.vegetable ? 'Yes' : 'No' %>
+                            </span>
+                        <% } %>
+                        <% if (plant.edible !== null) { %>
+                            <span class="badge <%= plant.edible ? 'badge-green' : 'badge-gray' %>">
+                                Edible: <%= plant.edible ? 'Yes' : 'No' %>
+                            </span>
+                        <% } %>
                     </div>
                 </div>
             </div>
 
-            <!-- Deep Botanical Information Grid -->
+            <!-- Botanical Details Grid (Hides fields if API returns null) -->
             <div class="info-grid">
-                <!-- Taxonomy Info -->
+                
+                <!-- 1. Taxonomy Box -->
                 <div class="info-box">
                     <h3>🏛 Taxonomy & Family</h3>
-                    <p><strong>Family:</strong> <%= plant.family ? plant.family.name : 'N/A' %></p>
-                    <p><strong>Common Family:</strong> <%= plant.family_common_name || 'N/A' %></p>
-                    <p><strong>Genus:</strong> <%= plant.genus ? plant.genus.name : 'N/A' %></p>
+                    <% if (plant.family) { %>
+                        <p><strong>Family:</strong> <%= plant.family.name %></p>
+                    <% } %>
+                    <% if (plant.family_common_name) { %>
+                        <p><strong>Common Family:</strong> <%= plant.family_common_name %></p>
+                    <% } %>
+                    <% if (plant.genus) { %>
+                        <p><strong>Genus:</strong> <%= plant.genus.name %></p>
+                    <% } %>
                 </div>
 
-                <!-- Growth & Environment Data -->
-                <div class="info-box">
-                    <h3>☀️ Growth Requirements</h3>
-                    <p>
-                        <strong>Light Requirement (0-10):</strong> 
-                        <%= (plant.growth && plant.growth.light !== null) ? plant.growth.light : 'N/A' %>
-                    </p>
-                    <p>
-                        <strong>Atmospheric Humidity (0-10):</strong> 
-                        <%= (plant.growth && plant.growth.atmospheric_humidity !== null) ? plant.growth.atmospheric_humidity : 'N/A' %>
-                    </p>
-                    <p>
-                        <strong>Soil Moisture (0-10):</strong> 
-                        <%= (plant.growth && plant.growth.soil_humidity !== null) ? plant.growth.soil_humidity : 'N/A' %>
-                    </p>
-                </div>
+                <!-- 2. Growth Requirements Box (Rendered only if growth data exists) -->
+                <% if (plant.growth) { %>
+                    <div class="info-box">
+                        <h3>☀️ Growth Requirements</h3>
+                        <% if (plant.growth.light !== null && plant.growth.light !== undefined) { %>
+                            <p><strong>Light Requirement (0-10):</strong> <%= plant.growth.light %></p>
+                        <% } %>
+                        <% if (plant.growth.atmospheric_humidity !== null && plant.growth.atmospheric_humidity !== undefined) { %>
+                            <p><strong>Atmospheric Humidity (0-10):</strong> <%= plant.growth.atmospheric_humidity %></p>
+                        <% } %>
+                        <% if (plant.growth.soil_humidity !== null && plant.growth.soil_humidity !== undefined) { %>
+                            <p><strong>Soil Moisture (0-10):</strong> <%= plant.growth.soil_humidity %></p>
+                        <% } %>
+                        <% if (plant.growth.ph_minimum && plant.growth.ph_maximum) { %>
+                            <p><strong>pH Range:</strong> <%= plant.growth.ph_minimum %> - <%= plant.growth.ph_maximum %></p>
+                        <% } %>
+                    </div>
+                <% } %>
 
-                <!-- Edible & Usage Details -->
+                <!-- 3. Edible Status Box -->
                 <div class="info-box">
                     <h3>🥗 Edible Parts & Uses</h3>
-                    <p><strong>Edible Status:</strong> <%= plant.edible ? 'Edible' : 'Non-edible or unknown' %></p>
-                    <p>
-                        <strong>Edible Parts:</strong> 
-                        <%= (plant.edible_part && plant.edible_part.length > 0) ? plant.edible_part.join(', ') : 'None specified' %>
-                    </p>
+                    <p><strong>Edible Status:</strong> <%= plant.edible ? 'Edible' : 'Non-edible / Unknown' %></p>
+                    <% if (plant.edible_part && plant.edible_part.length > 0) { %>
+                        <p><strong>Edible Parts:</strong> <%= plant.edible_part.join(', ') %></p>
+                    <% } %>
                 </div>
 
-                <!-- Specifications -->
-                <div class="info-box">
-                    <h3>📏 Specifications</h3>
-                    <p><strong>Average Height:</strong> <%= (plant.specifications && plant.specifications.average_height && plant.specifications.average_height.cm) ? plant.specifications.average_height.cm + ' cm' : 'N/A' %></p>
-                    <p><strong>Growth Rate:</strong> <%= (plant.specifications && plant.specifications.growth_rate) ? plant.specifications.growth_rate : 'N/A' %></p>
-                    <p><strong>Toxicity:</strong> <%= (plant.specifications && plant.specifications.toxicity) ? plant.specifications.toxicity : 'None / Low' %></p>
-                </div>
+                <!-- 4. Specifications Box -->
+                <% if (plant.specifications) { %>
+                    <div class="info-box">
+                        <h3>📏 Specifications</h3>
+                        <% if (plant.specifications.average_height && plant.specifications.average_height.cm) { %>
+                            <p><strong>Average Height:</strong> <%= plant.specifications.average_height.cm %> cm</p>
+                        <% } %>
+                        <% if (plant.specifications.growth_rate) { %>
+                            <p><strong>Growth Rate:</strong> <%= plant.specifications.growth_rate %></p>
+                        <% } %>
+                        <% if (plant.specifications.toxicity) { %>
+                            <p><strong>Toxicity:</strong> <%= plant.specifications.toxicity %></p>
+                        <% } %>
+                    </div>
+                <% } %>
+
             </div>
         </div>
     <% } %>
